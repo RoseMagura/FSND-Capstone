@@ -8,6 +8,7 @@ import json
 app = Flask(__name__)
 db = SQLAlchemy(app)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1@localhost:5432/casting'
 migrate = Migrate(app, db)
 
 
@@ -23,6 +24,7 @@ setup_db(app)
 #     db.init_app(app)
 #     db.create_all()
 
+
 '''
 Movie
 Attributes include title and release date
@@ -31,21 +33,21 @@ class Movie(db.Model):
     __tablename__ = 'Movies'
 
     id = db.Column(db.Integer, primary_key=True, unique=True)
-    name = db.Column(db.String)
+    name = db.Column(db.String())
     release_date = db.Column(db.Integer)
-    actor = db.relationship('Cast', backref='Movies', lazy=True)
+    actors = db.relationship('cast', backref='Movies', lazy=True)
  
-    def __init__(self, name, release_date, stars):
+    def __init__(self, name, release_date, actors):
         self.name = name
         self.release_date = release_date
-        self.stars = stars
+        self.actors = actors
 
     def format(self):
         return{
             'id': self.id,
             'name': self.name, 
             'release_date': self.release_date, 
-            'stars': self.stars
+            'actors': self.actors
         }    
 
 '''
@@ -56,9 +58,9 @@ class Actor(db.Model):
     __tablename__ = 'Actors'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    age = db.Column(db.Integer)
-    gender = db.Column(db.String)
+    name = db.Column(db.String())
+    age = db.Column(db.Integer())
+    gender = db.Column(db.String())
     movies = db.relationship('Cast', backref='Actors', lazy=True)
 
     def __init__(self, name, age, gender, movies):
@@ -75,13 +77,20 @@ class Actor(db.Model):
     #         'gender': self.gender,
     #     } 
 
-
+# cast = db.Table('cast',
+#     db.Column('id', db.Integer, primary_key=True),
+#     db.Column('actor_id', db.Integer, db.ForeignKey('Actors.id')),
+#     db.Column('movie_id', db.Integer, db.ForeignKey('Movies.id')))
 class Cast(db.Model):
-    __tablename__ = 'Cast'
+    __tablename__ = 'cast'
 
     id = db.Column(db.Integer, primary_key=True)    
-    actor_id = db.Column(db.Integer, db.ForeignKey(Actor.id))
-    movie_id = db.Column(db.Integer, db.ForeignKey(Movie.id)) 
+    actor_id = db.Column(db.Integer, db.ForeignKey(Actor.id), nullable=False)
+    movie_id = db.Column(db.Integer, db.ForeignKey(Movie.id), nullable=False) 
+
+    def __init__(self, actor_id, movie_id):
+        self.actor_id = actor_id
+        self.movie_id = movie_id
 
     def format(self):
         return{
@@ -94,4 +103,4 @@ class Cast(db.Model):
 
 db.app = app
 # db.init_app(app)
-# db.create_all()        
+db.create_all()        
