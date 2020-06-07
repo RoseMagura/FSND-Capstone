@@ -1,5 +1,6 @@
 import os
 from sqlalchemy import Column, String, create_engine, Integer
+from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
 from flask_migrate import Migrate
@@ -18,13 +19,32 @@ setup_db(app)
 '''
 # def setup_db(app, database_path=database_path):
     
-#     
+    
 #     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 #     db.app = app
 #     db.init_app(app)
 #     db.create_all()
 
+cast = db.Table('cast',
+    db.Column('actor_id', db.Integer, db.ForeignKey('Actors.id'), primary_key=True),
+    db.Column('movie_id', db.Integer, db.ForeignKey('Movies.id'), primary_key=True))
+# class Cast(db.Model):
+#     __tablename__ = 'cast'
 
+#     actor_id = db.Column(db.Integer, db.ForeignKey('Actors.id'))
+#     movie_id = db.Column(db.Integer, db.ForeignKey('Movies.id')) 
+#     actor = db.relationship('Actor', back_populates=)
+
+#     def __init__(self, actor_id, movie_id):
+#         self.actor_id = actor_id
+#         self.movie_id = movie_id
+
+#     def format(self):
+#         return{
+#             'id': self.id,
+#             'actor_id': self.actor_id,
+#             'movie_id': self.movie_id
+#         } 
 '''
 Movie
 Attributes include title and release date
@@ -35,7 +55,8 @@ class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True)
     name = db.Column(db.String())
     release_date = db.Column(db.Integer)
-    actors = db.relationship('cast', backref='Movies', lazy=True)
+    actors = db.relationship('Actor', secondary=cast, 
+        backref=db.backref('Actors', lazy=True))
  
     def __init__(self, name, release_date, actors):
         self.name = name
@@ -47,7 +68,7 @@ class Movie(db.Model):
             'id': self.id,
             'name': self.name, 
             'release_date': self.release_date, 
-            'actors': self.actors
+            'actors': [a.name for a in self.actors]
         }    
 
 '''
@@ -61,7 +82,8 @@ class Actor(db.Model):
     name = db.Column(db.String())
     age = db.Column(db.Integer())
     gender = db.Column(db.String())
-    movies = db.relationship('Cast', backref='Actors', lazy=True)
+    movies = db.relationship('Movie', secondary=cast, 
+        backref=db.backref('Movies', lazy=True))
 
     def __init__(self, name, age, gender, movies):
         self.name = name
@@ -69,38 +91,15 @@ class Actor(db.Model):
         self.gender = gender
         self.movies = movies
 
-    # def format(self):
-    #     return{
-    #         'id': self.id,
-    #         'name': self.name, 
-    #         'age': self.age,
-    #         'gender': self.gender,
-    #     } 
-
-# cast = db.Table('cast',
-#     db.Column('id', db.Integer, primary_key=True),
-#     db.Column('actor_id', db.Integer, db.ForeignKey('Actors.id')),
-#     db.Column('movie_id', db.Integer, db.ForeignKey('Movies.id')))
-class Cast(db.Model):
-    __tablename__ = 'cast'
-
-    id = db.Column(db.Integer, primary_key=True)    
-    actor_id = db.Column(db.Integer, db.ForeignKey(Actor.id), nullable=False)
-    movie_id = db.Column(db.Integer, db.ForeignKey(Movie.id), nullable=False) 
-
-    def __init__(self, actor_id, movie_id):
-        self.actor_id = actor_id
-        self.movie_id = movie_id
-
     def format(self):
         return{
             'id': self.id,
-            'actor_id': self.actor_id,
-            'movie_id': self.movie_id
-        }    
+            'name': self.name, 
+            'age': self.age,
+            'gender': self.gender, 
+            'movies': [m.name for m in self.movies]
+        } 
 
-# app.config["SQLALCHEMY_DATABASE_URI"] = database_path
 
-db.app = app
-# db.init_app(app)
-db.create_all()        
+   
+   
