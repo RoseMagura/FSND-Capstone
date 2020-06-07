@@ -9,15 +9,14 @@ import json
 database_name = 'casting'
 database_path = 'postgresql://{}:{}@{}/{}'.format(
                             'postgres', 1, 'localhost:5432', database_name)
+app = Flask(__name__)
+db = SQLAlchemy(app)                            
 
 '''
 setup_db(app)
     binds a flask application and a SQLAlchemy service
 '''
 def setup_db(app, database_path=database_path):
-    
-    app = Flask(__name__)
-    db = SQLAlchemy(app)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_path
     migrate = Migrate(app, db)
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
