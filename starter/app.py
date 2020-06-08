@@ -61,7 +61,7 @@ def create_app(test_config=None):
   def delete_movie(movie_id):
     try:
       #Later, add feature to warn user about deleting permanently
-      movie = Movie.query.get(movie_id)
+      movie = Movie.query.get(movie_id).one_or_none()
       movie.actors = []
       db.session.commit()
 
@@ -82,7 +82,34 @@ def create_app(test_config=None):
       print(ex)
       return 'issue'     
 
-  # @app.route('/movies/<int:movie_id>', methods=['PATCH'])    
+  @app.route('/movies/<int:movie_id>', methods=['PATCH']) 
+  def edit_movie(movie_id):
+    body = request.get_json()  
+    try:
+      movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
+      if movie is None:
+        print('error')
+        #abort(404)
+
+      if 'name' in body:
+        movie.name = body.get('name')
+      if 'actors' in body:  
+        movie.actors = body.get('actors')
+      if 'release_date' in body:
+        movie.release_date = int(body.get('release_date'))
+      movie.update()
+
+      return jsonify({
+        'success': True,
+        'edited': movie_id,
+        'total_movies': len(Movie.query.all())
+      })
+      
+    except Exception as ex:
+      print(ex)
+      #abort(400)
+      return 'issue' 
+              
 
   @app.route('/actors')
   def get_actors():
@@ -145,8 +172,35 @@ def create_app(test_config=None):
       
     except Exception as ex:
       print(ex)
-  # @app.route('/actors/<int:actor_id>', methods=['PATCH'])
-    
+  @app.route('/actors/<int:actor_id>', methods=['PATCH'])
+  def edit_actor(actor_id):
+    body = request.get_json()  
+    try:
+      actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
+
+      if actor is None:
+        print('error')
+        #abort(404)
+
+      if 'name' in body:
+        actor.name = body.get('name', None)
+      if 'movies' in body:
+        actor.movies = body.get('movies')
+      if 'age' in body:
+        actor.age = int(body.get('age'))
+      actor.update()
+
+      return jsonify({
+        'success': True,
+        'edited': actor_id,
+        'total_actors': len(Actor.query.all())
+      })
+      
+    except Exception as ex:
+      print(ex)
+      #abort(400)
+      return 'issue'
+      
   return app
 
 APP = create_app()
