@@ -4,6 +4,19 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from models import *
 
+
+ITEMS_PER_PAGE = 10
+
+
+def paginate_items(request, selection, type):
+  page = request.args.get('page', 1, type=int)
+  start = (page - 1) * ITEMS_PER_PAGE
+  end = start + ITEMS_PER_PAGE
+
+  items = [type.format() for type in selection]
+  current_items = items[start: end]
+  return current_items
+
 def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
@@ -23,10 +36,14 @@ def create_app(test_config=None):
 
   @app.route('/movies')
   def get_movies():
-    names = []
-    for movie in Movie.query.all():
-      names.append(movie.name)
-    return jsonify({'movies': names})
+    selection = Movie.query.order_by(Movie.id).all()
+    current_movies = paginate_items(request, selection, Movie)
+
+    return jsonify({
+      'success': True,
+      'movies': current_movies,
+      'total_movies': len(selection),
+      })
 
   @app.route('/movies', methods=['POST'])
   def create_movie():
@@ -37,9 +54,9 @@ def create_app(test_config=None):
     actor_list = []
 
     for actor in new_actors:
-      new = Actor.query.filter(Actor.name==actor).first()
-      # if len(new) = 0:
-      #   abort
+      new = Actor.query.filter(Actor.name==actor).one_or_none
+      if new is None:
+        abort(404)
       actor_list.append(new)
     
     try:
@@ -67,7 +84,7 @@ def create_app(test_config=None):
 
       if movie is None:
         print('error')
-        #abort(404)
+        abort(404)
 
       movie.delete()
 
@@ -85,16 +102,23 @@ def create_app(test_config=None):
   @app.route('/movies/<int:movie_id>', methods=['PATCH']) 
   def edit_movie(movie_id):
     body = request.get_json()  
+    new_actors = body.get('actors')
     try:
       movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
       if movie is None:
         print('error')
-        #abort(404)
+        abort(404)
 
       if 'name' in body:
         movie.name = body.get('name')
       if 'actors' in body:  
-        movie.actors = body.get('actors')
+        current_actors = movie.actors
+        for instance in new_actors:
+          a = Actor.query.filter(Actor.name == instance).first()
+          current_actors.append(a)
+          
+        movie.actors = current_actors
+        
       if 'release_date' in body:
         movie.release_date = int(body.get('release_date'))
       movie.update()
@@ -107,16 +131,21 @@ def create_app(test_config=None):
       
     except Exception as ex:
       print(ex)
-      #abort(400)
+      abort(400)
       return 'issue' 
               
 
   @app.route('/actors')
   def get_actors():
-    names = []
-    for actor in Actor.query.all():
-      names.append(actor.name)
-    return jsonify({'actors': names})
+    selection = Actor.query.order_by(Actor.id).all()
+    current_actors = paginate_items(request, selection, Actor)
+
+    return jsonify({
+      'success': True,
+      'actors': current_actors,
+      'total_actors': len(selection),
+      })
+
 
   @app.route('/actors', methods=['POST'])
   def create_actor():
@@ -129,9 +158,9 @@ def create_app(test_config=None):
     movie_list = []
 
     for movie in new_movies:
-      new = Movie.query.filter(Movie.name==movie).first()
-      # if len(new) = 0:
-      #   abort
+      new = Movie.query.filter(Movie.name==movie).one_or_none
+      if new is None:
+        abort
       movie_list.append(new)
     
     try:
@@ -159,7 +188,7 @@ def create_app(test_config=None):
 
       if actor is None:
         print('error')
-        #abort(404)
+        abort(404)
 
       actor.delete()
 
@@ -179,13 +208,17 @@ def create_app(test_config=None):
       actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
 
       if actor is None:
-        print('error')
-        #abort(404)
+        abort(404)
 
       if 'name' in body:
         actor.name = body.get('name', None)
-      if 'movies' in body:
-        actor.movies = body.get('movies')
+      if 'movies' in body:  
+        current_movies = actor.movies
+        for instance in new_movies:
+          m = Movie.query.filter(Movie.name == instance).first()
+          current_movies.append(m)
+          
+        actor.movie = current_movies
       if 'age' in body:
         actor.age = int(body.get('age'))
       actor.update()
@@ -198,9 +231,38 @@ def create_app(test_config=None):
       
     except Exception as ex:
       print(ex)
-      #abort(400)
-      return 'issue'
+      abort(400)
       
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            'success': False,
+            'error': 400,
+            'message': 'bad request'
+        }), 400
+
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({
+            'success': False,
+            'error': 404,
+            'message': 'resource not found'
+        }), 404
+
+    @app.errorhandler(405)
+    def not_found(error):
+        return jsonify({
+            'success': False,
+            'error': 405,
+            'message': 'method not allowed'
+        }), 405
+
+    @app.errorhandler(422)
+    def not_found(error):
+        return jsonify({
+            'success': False,
+            'message': 'unprocessable'
+        }), 422    
   return app
 
 APP = create_app()
