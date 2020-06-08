@@ -57,6 +57,33 @@ def create_app(test_config=None):
       print(ex)
       return 'issue'    
 
+  @app.route('/movies/<int:movie_id>', methods=['DELETE'])
+  def delete_movie(movie_id):
+    try:
+      #Later, add feature to warn user about deleting permanently
+      movie = Movie.query.get(movie_id)
+      movie.actors = []
+      db.session.commit()
+
+      if movie is None:
+        print('error')
+        #abort(404)
+
+      movie.delete()
+
+
+      return jsonify({
+        'success': True,
+        'deleted': movie_id,
+        'total_movies': len(Movie.query.all())
+      })
+      
+    except Exception as ex:
+      print(ex)
+      return 'issue'     
+
+  # @app.route('/movies/<int:movie_id>', methods=['PATCH'])    
+
   @app.route('/actors')
   def get_actors():
     names = []
@@ -95,6 +122,30 @@ def create_app(test_config=None):
       print(ex)
       return 'issue'
 
+  @app.route('/actors/<int:actor_id>', methods=['DELETE'])
+  def delete_actor(actor_id):
+    try:
+      #Later, add feature to warn user about deleting permanently
+      actor = Actor.query.get(actor_id)
+      actor.movies = []
+      db.session.commit()
+
+      if actor is None:
+        print('error')
+        #abort(404)
+
+      actor.delete()
+
+
+      return jsonify({
+        'success': True,
+        'deleted': actor_id,
+        'total_movies': len(Actor.query.all())
+      })
+      
+    except Exception as ex:
+      print(ex)
+  # @app.route('/actors/<int:actor_id>', methods=['PATCH'])
     
   return app
 
