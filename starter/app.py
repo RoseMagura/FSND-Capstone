@@ -20,6 +20,7 @@ def paginate_items(request, selection, type):
 def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
+
   app.config.from_object('config.TestConfig')
   setup_db(app)
  
@@ -52,13 +53,15 @@ def create_app(test_config=None):
     new_release = body.get('release_date', None) 
     new_actors = body.get('actors', None)
     actor_list = []
+    print(new_actors)
 
     for actor in new_actors:
-      new = Actor.query.filter(Actor.name==actor).one_or_none
+      new = Actor.query.filter(Actor.name==actor).first()
       if new is None:
         abort(404)
       actor_list.append(new)
     
+    print(actor_list)
     try:
       entry = Movie(name=new_name, release_date=new_release, \
                     actors=actor_list)
@@ -78,7 +81,7 @@ def create_app(test_config=None):
   def delete_movie(movie_id):
     try:
       #Later, add feature to warn user about deleting permanently
-      movie = Movie.query.get(movie_id).one_or_none()
+      movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
       movie.actors = []
       db.session.commit()
 
@@ -158,7 +161,7 @@ def create_app(test_config=None):
     movie_list = []
 
     for movie in new_movies:
-      new = Movie.query.filter(Movie.name==movie).one_or_none
+      new = Movie.query.filter(Movie.name==movie).one_or_none()
       if new is None:
         abort
       movie_list.append(new)
@@ -201,12 +204,14 @@ def create_app(test_config=None):
       
     except Exception as ex:
       print(ex)
+
+      
   @app.route('/actors/<int:actor_id>', methods=['PATCH'])
   def edit_actor(actor_id):
     body = request.get_json()  
     try:
       actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
-
+      new_movies = body.get('movies')
       if actor is None:
         abort(404)
 
@@ -250,7 +255,7 @@ def create_app(test_config=None):
         }), 404
 
     @app.errorhandler(405)
-    def not_found(error):
+    def not_allowed(error):
         return jsonify({
             'success': False,
             'error': 405,
@@ -258,7 +263,7 @@ def create_app(test_config=None):
         }), 405
 
     @app.errorhandler(422)
-    def not_found(error):
+    def unprocessable(error):
         return jsonify({
             'success': False,
             'message': 'unprocessable'
