@@ -3,10 +3,11 @@ from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from models import *
+from auth import *
 
+#https://dev-l0ayxsy2.auth0.com/authorize?audience=CA&response_type=token&client_id=qnY6u1FIxnfHYX1nBFjCskAsxPrRc2EC&redirect_uri=http://127.0.0.1:5000/
 
 ITEMS_PER_PAGE = 10
-
 
 def paginate_items(request, selection, type):
   page = request.args.get('page', 1, type=int)
@@ -36,7 +37,8 @@ def create_app(test_config=None):
   # @app.route('/')
 
   @app.route('/movies')
-  def get_movies():
+  @requires_auth('get:movies')
+  def get_movies(token):
     selection = Movie.query.order_by(Movie.id).all()
     current_movies = paginate_items(request, selection, Movie)
 
@@ -47,7 +49,8 @@ def create_app(test_config=None):
       })
 
   @app.route('/movies', methods=['POST'])
-  def create_movie():
+  @requires_auth('post:movies')
+  def create_movie(token):
     body = request.get_json()  
     new_name = body.get('name', None)   
     new_release = body.get('release_date', None) 
@@ -78,7 +81,8 @@ def create_app(test_config=None):
       return 'issue'    
 
   @app.route('/movies/<int:movie_id>', methods=['DELETE'])
-  def delete_movie(movie_id):
+  @requires_auth('delete:movies')
+  def delete_movie(token, movie_id):
     try:
       #Later, add feature to warn user about deleting permanently
       movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
@@ -103,7 +107,8 @@ def create_app(test_config=None):
       return 'issue'     
 
   @app.route('/movies/<int:movie_id>', methods=['PATCH']) 
-  def edit_movie(movie_id):
+  @requires_auth('patch:movies')
+  def edit_movie(token, movie_id):
     body = request.get_json()  
     new_actors = body.get('actors')
     try:
@@ -139,7 +144,8 @@ def create_app(test_config=None):
               
 
   @app.route('/actors')
-  def get_actors():
+  @requires_auth('get:actors')
+  def get_actors(token):
     selection = Actor.query.order_by(Actor.id).all()
     current_actors = paginate_items(request, selection, Actor)
 
@@ -151,7 +157,8 @@ def create_app(test_config=None):
 
 
   @app.route('/actors', methods=['POST'])
-  def create_actor():
+  @requires_auth('post:actor')
+  def create_actor(token):
     body = request.get_json()  
     new_name = body.get('name', None)
     new_age = body.get('age', None)
@@ -182,7 +189,8 @@ def create_app(test_config=None):
       return 'issue'
 
   @app.route('/actors/<int:actor_id>', methods=['DELETE'])
-  def delete_actor(actor_id):
+  @requires_auth('delete:actor')
+  def delete_actor(token, actor_id):
     try:
       #Later, add feature to warn user about deleting permanently
       actor = Actor.query.get(actor_id)
@@ -205,9 +213,10 @@ def create_app(test_config=None):
     except Exception as ex:
       print(ex)
 
-      
+
   @app.route('/actors/<int:actor_id>', methods=['PATCH'])
-  def edit_actor(actor_id):
+  @requires_auth('patch:actor')
+  def edit_actor(token, actor_id):
     body = request.get_json()  
     try:
       actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
@@ -238,36 +247,58 @@ def create_app(test_config=None):
       print(ex)
       abort(400)
       
-    @app.errorhandler(400)
-    def bad_request(error):
-        return jsonify({
-            'success': False,
-            'error': 400,
-            'message': 'bad request'
-        }), 400
+  @app.errorhandler(AuthError)
+  def auth_error(e):
+    response = jsonify(e.error)
+    response.status_code = e.status_code
+    return response
 
-    @app.errorhandler(404)
-    def not_found(error):
-        return jsonify({
-            'success': False,
-            'error': 404,
-            'message': 'resource not found'
-        }), 404
+  @app.errorhandler(400)
+  def bad_request(error):
+      return jsonify({
+          'success': False,
+          'error': 400,
+          'message': 'bad request'
+      }), 400  
 
-    @app.errorhandler(405)
-    def not_allowed(error):
-        return jsonify({
-            'success': False,
-            'error': 405,
-            'message': 'method not allowed'
-        }), 405
+  @app.errorhandler(401)
+  def unauthorized(error):
+      return jsonify({
+          'success': False,
+          'error': 401,
+          'message': 'Unauthorized'
+      }), 401  
 
-    @app.errorhandler(422)
-    def unprocessable(error):
-        return jsonify({
-            'success': False,
-            'message': 'unprocessable'
-        }), 422    
+  @app.errorhandler(403)
+  def forbidden(error):
+      return jsonify({
+          'success': False,
+          'error': 403,
+          'message': 'Forbidden'
+      }), 403        
+
+  @app.errorhandler(404)
+  def not_found(error):
+      return jsonify({
+          'success': False,
+          'error': 404,
+          'message': 'resource not found'
+      }), 404
+
+  @app.errorhandler(405)
+  def not_allowed(error):
+      return jsonify({
+          'success': False,
+          'error': 405,
+          'message': 'method not allowed'
+      }), 405
+
+  @app.errorhandler(422)
+  def unprocessable(error):
+      return jsonify({
+          'success': False,
+          'message': 'unprocessable'
+      }), 422    
   return app
 
 APP = create_app()
