@@ -21,9 +21,11 @@ def paginate_items(request, selection, type):
 def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
-
   app.config.from_object('config.TestConfig')
-  setup_db(app)
+  database_name = 'casting'
+  database_path = 'postgresql://{}:{}@{}/{}'.format(
+                        'postgres', 1, 'localhost:5432', database_name)
+  setup_db(app, database_path=database_path)
  
   @app.after_request
   def after_request(response):
@@ -42,11 +44,15 @@ def create_app(test_config=None):
     selection = Movie.query.order_by(Movie.id).all()
     current_movies = paginate_items(request, selection, Movie)
 
+    if (len(current_movies) == 0):
+      abort(404)
+
     return jsonify({
       'success': True,
       'movies': current_movies,
       'total_movies': len(selection),
       })
+
 
   @app.route('/movies', methods=['POST'])
   @requires_auth('post:movies')
@@ -56,7 +62,7 @@ def create_app(test_config=None):
     new_release = body.get('release_date', None) 
     new_actors = body.get('actors', None)
     actor_list = []
-    print(new_actors)
+    # print(new_actors)
 
     for actor in new_actors:
       new = Actor.query.filter(Actor.name==actor).first()
@@ -64,7 +70,7 @@ def create_app(test_config=None):
         abort(404)
       actor_list.append(new)
     
-    print(actor_list)
+    # print(actor_list)
     try:
       entry = Movie(name=new_name, release_date=new_release, \
                     actors=actor_list)
@@ -77,11 +83,11 @@ def create_app(test_config=None):
       })
 
     except Exception as ex:
-      print(ex)
-      return 'issue'    
+      # print(ex)
+      abort(422)  
 
   @app.route('/movies/<int:movie_id>', methods=['DELETE'])
-  @requires_auth('delete:movies')
+  @requires_auth('delete:movie')
   def delete_movie(token, movie_id):
     try:
       #Later, add feature to warn user about deleting permanently
@@ -90,7 +96,7 @@ def create_app(test_config=None):
       db.session.commit()
 
       if movie is None:
-        print('error')
+        # print('error')
         abort(404)
 
       movie.delete()
@@ -103,18 +109,18 @@ def create_app(test_config=None):
       })
       
     except Exception as ex:
-      print(ex)
-      return 'issue'     
+      # print(ex)
+      abort(422)     
 
   @app.route('/movies/<int:movie_id>', methods=['PATCH']) 
-  @requires_auth('patch:movies')
+  @requires_auth('patch:movie')
   def edit_movie(token, movie_id):
     body = request.get_json()  
     new_actors = body.get('actors')
     try:
       movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
       if movie is None:
-        print('error')
+        # print('error')
         abort(404)
 
       if 'name' in body:
@@ -138,9 +144,8 @@ def create_app(test_config=None):
       })
       
     except Exception as ex:
-      print(ex)
-      abort(400)
-      return 'issue' 
+      # print(ex)
+      abort(422) 
               
 
   @app.route('/actors')
@@ -148,7 +153,10 @@ def create_app(test_config=None):
   def get_actors(token):
     selection = Actor.query.order_by(Actor.id).all()
     current_actors = paginate_items(request, selection, Actor)
-
+    
+    if (len(current_actors) == 0):
+      abort(404)
+    
     return jsonify({
       'success': True,
       'actors': current_actors,
@@ -185,8 +193,8 @@ def create_app(test_config=None):
       })
 
     except Exception as ex:
-      print(ex)
-      return 'issue'
+      # print(ex)
+      abort(422)
 
   @app.route('/actors/<int:actor_id>', methods=['DELETE'])
   @requires_auth('delete:actor')
@@ -198,7 +206,7 @@ def create_app(test_config=None):
       db.session.commit()
 
       if actor is None:
-        print('error')
+        # print('error')
         abort(404)
 
       actor.delete()
@@ -207,12 +215,12 @@ def create_app(test_config=None):
       return jsonify({
         'success': True,
         'deleted': actor_id,
-        'total_movies': len(Actor.query.all())
+        'total_actors': len(Actor.query.all())
       })
       
     except Exception as ex:
-      print(ex)
-
+      # print(ex)
+      abort(422)
 
   @app.route('/actors/<int:actor_id>', methods=['PATCH'])
   @requires_auth('patch:actor')
@@ -244,8 +252,8 @@ def create_app(test_config=None):
       })
       
     except Exception as ex:
-      print(ex)
-      abort(400)
+      # print(ex)
+      abort(422)
       
   @app.errorhandler(AuthError)
   def auth_error(e):
