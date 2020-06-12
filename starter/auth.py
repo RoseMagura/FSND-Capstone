@@ -52,6 +52,7 @@ def get_token_auth_header():
     token = parts[1]
     return token
 
+
 def verify_decode_jwt(token):
     jsonurl = urlopen(f'https://dev-l0ayxsy2.auth0.com/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
