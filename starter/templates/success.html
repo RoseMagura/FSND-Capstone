@@ -13,15 +13,25 @@
       <button type="button" class="collapsible">Movies</button>
       <div class="content">
         {% for d in data %}  
-        <p>{{ d }}</p>  
-          <button type="button">Edit</button>
-          <button type="button">Delete</button>
+        <button type="button" class="collapsible2">{{ d.name }}</button>
+        <div class="content2">
+            {% for actor in d.actors %}
+                <p> {{ actor}}</p>
+            {% endfor %} 
+      </div>
+        <button type="button">Edit</button>
+        <button type="button">Delete</button>
         {% endfor %} 
       </div>
       <button type="button" class="collapsible">Actors</button>
       <div class="content">
         {% for a in actors %}  
-        <p>{{ a }}</p>  
+            <button type="button" class="collapsible2">{{ a.name }}</button>
+            <div class="content2">
+                {% for movie in a.movies %}
+                    <p> {{ movie }}</p>
+                {% endfor %} 
+          </div> 
           <button type="button">Edit</button>
           <button type="button">Delete</button>
         {% endfor %} 

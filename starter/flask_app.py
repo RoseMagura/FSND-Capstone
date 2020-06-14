@@ -38,21 +38,29 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     return response
 
-# @app.route('/')
-# def index():
-#     return 'Hello World'
-
 @app.route('/')
-# @requires_auth('get:movies')
+def index():
+    return render_template('index.html')
+
+@app.route('/all')
+# @requires_auth('get:movies', 'get:actors')
 def get_all():
     selection = Movie.query.order_by(Movie.id).all()
-    M = []
-    for s in selection:
-        name = s.format()['name']
-        M.append(name)
     current_movies = paginate_items(request, selection, Movie)
-
+    # M = []
+    # for m in current_movies:
+    #     name = m.format()['name']
+    #     M.append(name)
     if (len(current_movies) == 0):
+        abort(404)
+
+    actor_selection = Actor.query.order_by(Actor.id).all()
+    current_actors = paginate_items(request, actor_selection, Actor)
+    # A = []
+    # for s in actor_selection:
+    #     name = s.format()['name']
+    #     A.append(name)
+    if (len(current_actors) == 0):
         abort(404)
 
     # return jsonify({
@@ -60,21 +68,10 @@ def get_all():
     #     'movies': current_movies,
     #     'total_movies': len(selection),
     #     })
-# @requires_auth('get:movies')
-    actor_selection = Actor.query.order_by(Actor.id).all()
-    A = []
-    for s in actor_selection:
-        name = s.format()['name']
-        A.append(name)
-    # current_actors = paginate_items(request, selection, Actor)
-
-    # if (len(current_actors) == 0):
-    #     abort(404)
-
-    # return jsonify({
-    #     'success': True,
-    #     'movies': current_movies,
-    #     'total_movies': len(selection),
-    #     })
-    return render_template('success.html', data=M,
-        actors=A)        
+    movie_names = []
+    actor_names = []
+    # for entry in current_movies:
+        
+    print(movie_names)
+    return render_template('success.html', data=current_movies,
+        actors=current_actors)        

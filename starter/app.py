@@ -43,11 +43,11 @@ def create_app(test_config=None):
 
     @app.route('/')
     def index():
-        return 'Hello World'
+        return render_template('index.html')
 
     @app.route('/movies')
-    # @requires_auth('get:movies')
-    def get_movies():
+    @requires_auth('get:movies')
+    def get_movies(token):
         selection = Movie.query.order_by(Movie.id).all()
         current_movies = paginate_items(request, selection, Movie)
 
