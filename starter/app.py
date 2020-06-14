@@ -1,5 +1,6 @@
 import os
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, abort, jsonify, redirect, url_for, \
+    render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from models import *
@@ -7,7 +8,7 @@ from auth import *
 
 # https://dev-l0ayxsy2.auth0.com/authorize?audience=CA&response_type=token
 # &client_id=qnY6u1FIxnfHYX1nBFjCskAsxPrRc2EC&
-# redirect_uri=http://127.0.0.1:5000/
+# redirect_uri=http://127.0.0.1:3000/
 
 ITEMS_PER_PAGE = 10
 
@@ -40,9 +41,13 @@ def create_app(test_config=None):
         response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response
 
+    @app.route('/')
+    def index():
+        return 'Hello World'
+
     @app.route('/movies')
-    @requires_auth('get:movies')
-    def get_movies(token):
+    # @requires_auth('get:movies')
+    def get_movies():
         selection = Movie.query.order_by(Movie.id).all()
         current_movies = paginate_items(request, selection, Movie)
 
@@ -53,7 +58,13 @@ def create_app(test_config=None):
             'success': True,
             'movies': current_movies,
             'total_movies': len(selection),
-            })
+             })
+        # return render_template('success.html', 
+        #     data=[{
+        #     'success': True,
+        #     'movies': current_movies,
+        #     'total_movies': len(selection)}])
+        
 
     @app.route('/movies', methods=['POST'])
     @requires_auth('post:movies')
@@ -83,7 +94,7 @@ def create_app(test_config=None):
             })
 
         except Exception as ex:
-            # print(ex)
+            print(ex)
             abort(422)
 
     @app.route('/movies/<int:movie_id>', methods=['DELETE'])
