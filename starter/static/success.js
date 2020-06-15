@@ -25,4 +25,39 @@ for (let i = 0; i < coll2.length; i++) {
       content.style.display = "block";
     }
   });
-} 
+}; 
+
+//Delete movie
+const movieDeleteBtns = document.querySelectorAll('.movie-delete-button');
+for (let i = 0; i < movieDeleteBtns.length; i++) {
+    const btn = movieDeleteBtns[i];
+    btn.onclick = function(e) {
+        e.preventDefault();
+        window.confirm('Are you sure you want to permanently delete this?');
+        const movieId = e.target.dataset['id'];
+
+        fetch ('/movies/' + movieId, {
+            method: 'DELETE'
+        })     
+        .then (
+            fetch('/all')
+            .then(window.open('/all', '_self'))
+            )       
+    }};
+
+//Delete Actor    
+const actorDeleteBtns = document.querySelectorAll('.actor-delete-button');
+for (let i = 0; i < actorDeleteBtns.length; i++) {
+    const btn = actorDeleteBtns[i];
+    btn.onclick = function(e) {
+        e.preventDefault();
+        window.confirm('Are you sure you want to permanently delete this?');
+        const actorId = e.target.dataset['id'];
+        fetch ('/actors/' + actorId, {
+            method: 'DELETE'
+        })     
+        .then (
+            fetch('/all')
+            .then(window.open('/all', '_self'))
+            );
+    }};

@@ -15,12 +15,17 @@
         {% for d in data %}  
         <button type="button" class="collapsible2">{{ d.name }}</button>
         <div class="content2">
+            <h4>Release Date:</h4> 
+            <p>{{d.release_date}}</p>
+            <h4> Actors:</h4>
             {% for actor in d.actors %}
                 <p> {{ actor}}</p>
             {% endfor %} 
       </div>
-        <button type="button">Edit</button>
-        <button type="button">Delete</button>
+        <button type="button" class="movie-edit-button" data-id="{{ d.id }}">
+            Edit</button>
+        <button type="button" class="movie-delete-button" data-id="{{ d.id }}">
+            Delete</button>
         {% endfor %} 
       </div>
       <button type="button" class="collapsible">Actors</button>
@@ -28,12 +33,19 @@
         {% for a in actors %}  
             <button type="button" class="collapsible2">{{ a.name }}</button>
             <div class="content2">
+                <h4>Age:</h4>
+                <p>{{a.age}}</p>
+                <h4>Gender:</h4>
+                <p>{{a.gender}}</p>
+                <h4>Movies:</h4>
                 {% for movie in a.movies %}
-                    <p> {{ movie }}</p>
+                    <p> {{ movie.name }}</p>
                 {% endfor %} 
           </div> 
-          <button type="button">Edit</button>
-          <button type="button">Delete</button>
+          <button type="button" class="actor-edit-button" data-id="{{ a.id }}">
+            Edit</button>
+        <button type="button" class="actor-delete-button" data-id="{{ a.id }}">
+            Delete</button>
         {% endfor %} 
       </div>
       <button type="button">Post New Movie</button>
@@ -42,5 +54,5 @@
     </body>
     </html>    
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
     <script src="../static/success.js"></script>

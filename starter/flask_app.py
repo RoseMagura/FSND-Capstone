@@ -4,7 +4,7 @@ from flask import Flask, request, abort, jsonify, redirect, url_for, \
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from models import *
-from auth import *
+# from auth import *
 
 # https://dev-l0ayxsy2.auth0.com/authorize?audience=CA&response_type=token
 # &client_id=qnY6u1FIxnfHYX1nBFjCskAsxPrRc2EC&
@@ -47,31 +47,59 @@ def index():
 def get_all():
     selection = Movie.query.order_by(Movie.id).all()
     current_movies = paginate_items(request, selection, Movie)
-    # M = []
-    # for m in current_movies:
-    #     name = m.format()['name']
-    #     M.append(name)
     if (len(current_movies) == 0):
         abort(404)
 
     actor_selection = Actor.query.order_by(Actor.id).all()
     current_actors = paginate_items(request, actor_selection, Actor)
-    # A = []
-    # for s in actor_selection:
-    #     name = s.format()['name']
-    #     A.append(name)
     if (len(current_actors) == 0):
         abort(404)
 
-    # return jsonify({
-    #     'success': True,
-    #     'movies': current_movies,
-    #     'total_movies': len(selection),
-    #     })
-    movie_names = []
-    actor_names = []
-    # for entry in current_movies:
-        
-    print(movie_names)
     return render_template('success.html', data=current_movies,
         actors=current_actors)        
+
+@app.route('/movies/<int:movie_id>', methods=['DELETE'])
+# @requires_auth('delete:movie')
+def delete_movie(movie_id):
+    # Later, add feature to warn user about deleting permanently
+    movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
+    movie.actors = []
+    db.session.commit()
+
+    if movie is None:
+        # print('error')
+        abort(404)
+
+    movie.delete()
+    # selection = Movie.query.order_by(Movie.id).all()
+    # current_movies = paginate_items(request, selection, Movie)
+    # if (len(current_movies) == 0):
+    #     abort(404)
+
+    # actor_selection = Actor.query.order_by(Actor.id).all()
+    # current_actors = paginate_items(request, actor_selection, Actor)
+    # if (len(current_actors) == 0):
+    #     abort(404)
+    return jsonify({
+                    'success': True,
+                    'deleted': movie_id
+    })     
+
+@app.route('/actors/<int:actor_id>', methods=['DELETE'])
+def delete_actor(actor_id):
+    # Later, add feature to warn user about deleting permanently
+    actor = Actor.query.get(actor_id)
+    actor.movies = []
+    db.session.commit()
+
+    if actor is None:
+        # print('error')
+        abort(404)
+
+    actor.delete()
+
+    return jsonify({
+                    'success': True,
+                    'deleted': actor_id,
+                    'total_actors': len(Actor.query.all())
+    })
