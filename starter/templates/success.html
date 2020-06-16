@@ -4,12 +4,12 @@
   <head>
     <title>Current Database</title>
     <link rel="stylesheet" href="../static/style.css">
+    <link rel="shortcut icon" href="../static/favicon.ico"/>
   </head>
 
   <body>
     <div class="main">
       <h1>Current Database</h1>
-      <p id="demo"></p>
       <button type="button" class="collapsible">Movies</button>
       <div class="content">
         {% for d in data %}  
@@ -48,9 +48,9 @@
             Delete</button>
         {% endfor %} 
       </div>
-      <button type="button" onclick="window.location.href='/new_movie';">
+      <button type="button" id="post-movie-button">
         Post New Movie</button>
-      <button type="button" onclick="window.location.href='/new_actor';"> 
+      <button type="button" id="post-actor-button"> 
         Post New Actor</button>
     </div>
     </body>

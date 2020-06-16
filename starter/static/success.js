@@ -61,3 +61,42 @@ for (let i = 0; i < actorDeleteBtns.length; i++) {
             .then(window.open('/all', '_self'))
             );
     }};
+
+//Edit Movie    
+const movieEditBtns = document.querySelectorAll('.movie-edit-button');
+for (let i = 0; i < movieEditBtns.length; i++) {
+    const btn = movieEditBtns[i];
+    btn.onclick = function(e) {
+        e.preventDefault();
+        const movieId = e.target.dataset['id'];
+        fetch ('/movies/' + movieId)  
+         .then(window.open('/movies/' + movieId, '_self'));
+    }};
+
+//Edit Actor    
+const actorEditBtns = document.querySelectorAll('.actor-edit-button');
+for (let i = 0; i < actorEditBtns.length; i++) {
+    const btn = actorEditBtns[i];
+    btn.onclick = function(e) {
+        e.preventDefault();
+        const actorId = e.target.dataset['id'];
+        fetch ('/actors/' + actorId)     
+
+            .then(window.open('/actors/' + actorId, '_self'));
+    }};
+
+post_movie_button = document.getElementById('post-movie-button');
+post_movie_button.addEventListener('click', function(e){
+    e.preventDefault();
+    console.log('open new movie page');
+    window.open('/new_movie', '_self');
+}, false
+);
+
+post_actor_button = document.getElementById('post-actor-button');
+post_actor_button.addEventListener('click', function(e){
+    e.preventDefault();
+    console.log('open new movie page');
+    window.open('/new_actor', '_self');
+}, false
+);

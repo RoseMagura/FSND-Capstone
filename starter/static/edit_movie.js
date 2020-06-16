@@ -1,31 +1,31 @@
-submit = document.getElementById('submit');
+const submit = document.getElementById('submit');
+const movie_id = document.getElementById('movie_id').innerHTML;
+
 submit.addEventListener('click', function(e){
     e.preventDefault();
     console.log('submitted');
     const name = document.getElementById('name').value;
-    const age = document.getElementById('age').value;
-    const gender = document.getElementById('gender').value;
-    let movies = [];
-    for (let option of document.getElementById('movies').options){
+    const release_date = document.getElementById('release_date').value;
+    let actors = [];
+ 
+    for (let option of document.getElementById('actors').options){
         if (option.selected) {
-            movies.push(option.value);
+            actors.push(option.value);
         }
     }
-    
-    fetch('/new_actor', {
-        method: 'post',
+    fetch('/movies/' + movie_id, {
+        method: 'patch',
         body: JSON.stringify({
             'name': name,
-            'age': age,
-            'gender': gender,
-            'movies': movies
+            'release_date': release_date,
+            'actors': actors
 
         }),
         headers : {
             'Content-Type': 'application/json'
         }
     })
-})
+});
 
 const return_button = document.getElementById('return');
 return_button.addEventListener('click', function(){

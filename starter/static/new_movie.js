@@ -1,4 +1,4 @@
-submit = document.getElementById('submit');
+const submit = document.getElementById('submit');
 submit.addEventListener('click', function(e){
     e.preventDefault();
     console.log('submitted');
@@ -22,4 +22,9 @@ submit.addEventListener('click', function(e){
             'Content-Type': 'application/json'
         }
     })
+});
+
+const return_button = document.getElementById('return');
+return_button.addEventListener('click', function(){
+    window.open('/all', '_self');
 })

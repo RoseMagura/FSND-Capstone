@@ -77,6 +77,84 @@ def delete_movie(movie_id):
                     'deleted': movie_id
     })     
 
+@app.route('/movies/<int:movie_id>')
+def view_edit_movie_form(movie_id):
+    movie = Movie.query.get(movie_id)
+    all = Actor.query.order_by(Actor.id).all()
+    return render_template('edit_movie.html', movie=movie, all=all)
+@app.route('/movies/<int:movie_id>', methods=['PATCH'])
+    # @requires_auth('patch:movie')
+def edit_movie(movie_id):
+    body = request.get_json()
+    try:
+        movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
+        if movie is None:
+            # print('error')
+            abort(404)
+
+        if 'name' in body:
+            movie.name = body.get('name')
+        if 'actors' in body:
+            new_actors = body.get('actors')
+            current_actors = []
+        for instance in new_actors:
+            a = Actor.query.filter(Actor.id == instance).first()
+            current_actors.append(a)
+
+        movie.actors = current_actors
+
+        if 'release_date' in body:
+            movie.release_date = int(body.get('release_date'))
+        movie.update()
+
+        return jsonify({
+                        'success': True,
+                        'edited': movie_id,
+                        'total_movies': len(Movie.query.all())
+        })
+
+    except Exception as ex:
+        print(ex)
+        abort(422)
+
+@app.route('/actors/<int:actor_id>')
+def view_edit_actor_form(actor_id):
+    actor = Actor.query.get(actor_id)
+    all = Movie.query.order_by(Movie.id).all()
+    return render_template('edit_actor.html', actor=actor, all=all)
+
+@app.route('/actors/<int:actor_id>', methods=['PATCH'])
+def edit_actor(actor_id):
+    body = request.get_json()
+    try:
+        actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
+        current_movies = []
+        if actor is None:
+            abort(404)
+
+        if 'name' in body:
+            actor.name = body.get('name', None)
+        if 'movies' in body:
+            new_movies = body.get('movies')
+            
+            for instance in new_movies:
+                m = Movie.query.filter(Movie.id == instance).first()
+                current_movies.append(m)
+
+            actor.movies = current_movies
+        if 'age' in body:
+            actor.age = int(body.get('age'))
+        actor.update()
+
+        return jsonify({
+            'success': True,
+            'edited': actor_id,
+            'total_actors': len(Actor.query.all())
+            })
+
+    except Exception as ex:
+        # print(ex)
+        abort(422)
 @app.route('/actors/<int:actor_id>', methods=['DELETE'])
 def delete_actor(actor_id):
     actor = Actor.query.get(actor_id)

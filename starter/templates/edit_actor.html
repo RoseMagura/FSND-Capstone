@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<html>
+  <head>
+    <title>Edit Actor</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <link rel="shortcut icon" href="../static/favicon.ico"/>
+  </head>
+
+  <body>
+    <div class="main">
+      <h1>Edit Actor</h1>
+       <h2>Current Actor Data:</h2> 
+       <h3>Name:</h3>
+       {{actor.name}}
+       <h3>Actor ID:</h3>
+       <p id="actor_id">{{actor.id}}</p>
+       <h3>Age:</h3>
+       {{actor.age}}
+       <h3>Gender:</h3>
+       {{actor.gender}}
+       <h3>Movies:</h3>
+       {% for movie in actor.movies %}
+       {{movie.name}}<br>
+       {% endfor %}
+
+       <h2>New Actor Data:</h2>
+       <label for="name">Actor Name:</label><br>
+       <input type="text" id="name" name="name" value="{{actor.name}}"><br>
+       <label for="gender">Gender:</label><br>
+       <input type="text" id="gender" name="gender" value="{{actor.gender}}"><br>
+       <label for="age">Age:</label><br>
+       <input type="number" id="age" name="age" min="1" max="100" value="{{actor.age}}"><br>
+       <label for="movies">Movies:</label>
+       <p> Hold the control button and click to add multiple movies</p>
+       <select id="movies" name="movies" multiple>
+           <option value="">Please choose this actor's movies</option>
+           {% for movie in all %}
+           <option value="{{ movie.id }}">{{ movie.name }}</option>
+           {%endfor %}
+           <!-- For if movie isn't currently in database -->
+           <option value="other">Other</option>
+       </select><br>
+      <input id="submit" type="submit" value="Submit">
+      <button type="button" id="return">Return to Home Page</button>  
+    </div>
+   </body>   
+   </html>
+   <script src="../static/edit_actor.js"></script>
