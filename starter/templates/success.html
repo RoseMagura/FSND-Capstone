@@ -2,7 +2,7 @@
 <meta charset="utf-8" />
 <html>
   <head>
-    <title>Successful Login</title>
+    <title>Current Database</title>
     <link rel="stylesheet" href="../static/style.css">
   </head>
 
@@ -39,7 +39,7 @@
                 <p>{{a.gender}}</p>
                 <h4>Movies:</h4>
                 {% for movie in a.movies %}
-                    <p> {{ movie.name }}</p>
+                    <p> {{ movie }}</p>
                 {% endfor %} 
           </div> 
           <button type="button" class="actor-edit-button" data-id="{{ a.id }}">
@@ -48,8 +48,10 @@
             Delete</button>
         {% endfor %} 
       </div>
-      <button type="button">Post New Movie</button>
-      <button type="button"> Post New Actor</button>
+      <button type="button" onclick="window.location.href='/new_movie';">
+        Post New Movie</button>
+      <button type="button" onclick="window.location.href='/new_actor';"> 
+        Post New Actor</button>
     </div>
     </body>
     </html>    

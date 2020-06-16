@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<html>
+  <head>
+    <title>List a New Movie</title>
+    <link rel="stylesheet" href="../static/style.css">
+  </head>
+
+  <body>
+    <div class="form-wrapper">
+        <form class="form">
+            <h3>List a New Movie</h3>
+            <label for="name">Movie Name:</label><br>
+            <input type="text" id="name" name="name"><br>
+            <label for ="release_date">Release Date:</label><br>
+            <input type="text" id="release_date" name="release_date"><br>
+            <label for="actors">Actors:</label>
+            <p> Hold the control button and click to add multiple actors</p>
+            <select id="actors" name="actors" multiple>
+                <option value="">Please choose the starring actors</option>
+                {% for actor in actors %}
+                <option value="{{ actor.id }}">{{ actor.name }}</option>
+                {%endfor %}
+                <!-- For if actor isn't currently in database -->
+                <option value="other">Other</option>
+            </select><br>
+            <input id="submit" type="submit" value="Submit">
+        </form>
+     
+    </div>
+  </body>
+  </html>  
+  <script src="../static/new_movie.js"></script>
