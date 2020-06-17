@@ -6,10 +6,6 @@ from flask_cors import CORS
 from models import *
 from auth import *
 
-# https://dev-l0ayxsy2.auth0.com/authorize?audience=CA&response_type=token
-# &client_id=qnY6u1FIxnfHYX1nBFjCskAsxPrRc2EC&
-# redirect_uri=http://127.0.0.1:3000/
-
 ITEMS_PER_PAGE = 10
 
 
@@ -59,12 +55,6 @@ def create_app(test_config=None):
             'movies': current_movies,
             'total_movies': len(selection),
              })
-        # return render_template('success.html', 
-        #     data=[{
-        #     'success': True,
-        #     'movies': current_movies,
-        #     'total_movies': len(selection)}])
-        
 
     @app.route('/movies', methods=['POST'])
     @requires_auth('post:movies')
@@ -81,7 +71,6 @@ def create_app(test_config=None):
                 abort(404)
             actor_list.append(new)
 
-    # print(actor_list)
         try:
             entry = Movie(name=new_name, release_date=new_release,
                           actors=actor_list)
@@ -130,13 +119,12 @@ def create_app(test_config=None):
         try:
             movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
             if movie is None:
-                # print('error')
                 abort(404)
 
             if 'name' in body:
                 movie.name = body.get('name')
             if 'actors' in body:
-                current_actors = movie.actors
+                current_actors = []
             for instance in new_actors:
                 a = Actor.query.filter(Actor.name == instance).first()
                 current_actors.append(a)
@@ -242,7 +230,7 @@ def create_app(test_config=None):
             if 'name' in body:
                 actor.name = body.get('name', None)
             if 'movies' in body:
-                current_movies = actor.movies
+                current_movies = []
             for instance in new_movies:
                 m = Movie.query.filter(Movie.name == instance).first()
                 current_movies.append(m)
